@@ -308,7 +308,7 @@ function RowDrawer({
               </Badge>
             )}
           </HStack>
-          <CloseButton />
+          <CloseButton onClick={onClose} />
         </DrawerHeader>
         <DrawerBody>
           {row ? (
@@ -543,49 +543,50 @@ export default function App() {
     toast({ title: `Bulk applied ${changed}`, status: "success" });
   }
 
-  // risk scoring for commit preview
+  // risk scoring for commit preview — now actually using `source`
   function riskOf(score?: number, source?: string): RiskLevel {
     if (typeof score !== "number") return "HIGH";
-    if (score >= 0.85) return "LOW";
-    if (score >= 0.6) return "MEDIUM";
+    const trusted = source ? ["FINNHUB", "POLYGON", "YFINANCE", "LOCAL"].includes(source.toUpperCase()) : false;
+    const adjusted = trusted ? Math.min(score + 0.05, 0.999) : score;
+    if (adjusted >= 0.85) return "LOW";
+    if (adjusted >= 0.6) return "MEDIUM";
     return "HIGH";
   }
 
   /* ---------- Shortcuts Modal ---------- */
-function ShortcutsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const Row = ({ keys, label }: { keys: React.ReactNode; label: string }) => (
-    <HStack justify="space-between" py={1.5}>
-      <HStack spacing={2}>{keys}</HStack>
-      <Text color="gray.300">{label}</Text>
-    </HStack>
-  );
+  function ShortcutsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+    const Row = ({ keys, label }: { keys: React.ReactNode; label: string }) => (
+      <HStack justify="space-between" py={1.5}>
+        <HStack spacing={2}>{keys}</HStack>
+        <Text color="gray.300">{label}</Text>
+      </HStack>
+    );
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} size="sm" isCentered>
-      <ModalOverlay />
-      <ModalContent
-        bg="blackAlpha.700"
-        borderWidth="1px"
-        borderColor="whiteAlpha.200"
-        backdropFilter="blur(10px)"
-      >
-        <ModalHeader color="gray.100">Keyboard Shortcuts</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <VStack align="stretch" spacing={2}>
-            <Row keys={<><Kbd>⌘/Ctrl</Kbd><Text> + </Text><Kbd>K</Kbd></>} label="Focus search" />
-            <Row keys={<><Kbd>⌘/Ctrl</Kbd><Text> + </Text><Kbd>Enter</Kbd></>} label="Open commit preview" />
-            <Row keys={<><Kbd>⌘/Ctrl</Kbd><Text> + </Text><Kbd>L</Kbd></>} label="Toggle Local Maps" />
-            <Row keys={<Kbd>A</Kbd>} label="Bulk-apply top candidates" />
-            <Row keys={<Kbd>R</Kbd>} label="Reset session" />
-            <Row keys={<Kbd>?</Kbd>} label="Open this help" />
-          </VStack>
-        </ModalBody>
-      </ModalContent>
-    </Modal>
-  );
-}
-
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} size="sm" isCentered>
+        <ModalOverlay />
+        <ModalContent
+          bg="blackAlpha.700"
+          borderWidth="1px"
+          borderColor="whiteAlpha.200"
+          backdropFilter="blur(10px)"
+        >
+          <ModalHeader color="gray.100">Keyboard Shortcuts</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack align="stretch" spacing={2}>
+              <Row keys={<><Kbd>⌘/Ctrl</Kbd><Text> + </Text><Kbd>K</Kbd></>} label="Focus search" />
+              <Row keys={<><Kbd>⌘/Ctrl</Kbd><Text> + </Text><Kbd>Enter</Kbd></>} label="Open commit preview" />
+              <Row keys={<><Kbd>⌘/Ctrl</Kbd><Text> + </Text><Kbd>L</Kbd></>} label="Toggle Local Maps" />
+              <Row keys={<Kbd>A</Kbd>} label="Bulk-apply top candidates" />
+              <Row keys={<Kbd>R</Kbd>} label="Reset session" />
+              <Row keys={<Kbd>?</Kbd>} label="Open this help" />
+            </VStack>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+    );
+  }
 
   // build pending changes and open modal
   function openCommitPreview() {
