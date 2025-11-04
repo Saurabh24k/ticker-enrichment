@@ -1,7 +1,3 @@
-Here’s a tight, no-BS `README.md` you can drop in. It reads like a builder wrote it, not a marketer.
-
----
-
 # Ticker Enrichment
 
 End-to-end tool to **enrich portfolio holdings** by filling missing ticker symbols from names. Upload a CSV/XLSX, get a **preview with candidates**, set overrides, then **download an enriched CSV**. Built fast, shipped cleaner.
