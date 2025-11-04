@@ -19,13 +19,13 @@ type Candidate = { symbol: string; name: string; type?: string; score?: number; 
 type PreviewStatus = "FILLED" | "AMBIGUOUS" | "NOT_FOUND" | "UNCHANGED" | "ENRICHED";
 type PreviewRow = {
   index: number;
-  status: PreviewStatus | string; // tolerate unexpected server values
+  status: PreviewStatus | string;
   candidates?: Candidate[];
   notes?: string;
   input?: { Name?: string | null; Symbol?: string | null };
   Name?: string | null;
   Symbol?: string | null;
-  proposed?: Record<string, any>; // backend surface for ENRICHED preview
+  proposed?: Record<string, any>;
 };
 type Counts = Record<PreviewStatus, number>;
 type LogKind = "step" | "info" | "success" | "warn" | "error";
@@ -378,7 +378,7 @@ export default function App() {
   const [query, setQuery] = useLocalStorage<string>("prefs.query", "");
   const qDebounced = useDebounced(query, 180);
 
-  // learned aliases: normalized name -> symbol
+  // learned aliases
   const [aliases, setAliases] = useLocalStorage<Record<string, string>>("learned.aliases", {});
   const [appliedAliasCount, setAppliedAliasCount] = useState(0);
 
@@ -452,7 +452,6 @@ export default function App() {
       const parseDur = performance.now() - parseStart;
       pushLog("info", `Parsing JSON… ${ms(parseDur)} • rows: ${s1(data.length)}`);
 
-      // Apply learned aliases as boosts to the FIRST candidate if symbol matches alias
       let applied = 0;
       const normalized = data.map((r, i) => {
         const out: PreviewRow = {
@@ -469,7 +468,6 @@ export default function App() {
         const nm = norm(out.Name ?? out.input?.Name);
         const learned = aliases[nm];
         if (learned && out.candidates && out.candidates.length > 0) {
-          // if our learned symbol appears in candidates, move it to the top & add a tiny score bump
           const idx = out.candidates.findIndex(c => c.symbol?.toUpperCase() === learned.toUpperCase());
           if (idx >= 0) {
             const [hit] = out.candidates.splice(idx, 1);
@@ -512,7 +510,6 @@ export default function App() {
       if (!value) { delete next[rowIndex]; pushLog("info", `Cleared override for row ${rowIndex}`); }
       else {
         next[rowIndex] = value;
-        // learn alias immediately
         const r = rows.find(rr => rr.index === rowIndex);
         const nm = norm(r?.Name ?? r?.input?.Name);
         if (nm) setAliases(a => ({ ...a, [nm]: value }));
@@ -534,7 +531,7 @@ export default function App() {
           if (typeof top.score === "number" && top.score < bulkMinScore) continue;
           next[r.index] = top.symbol; changed++;
           const nm = norm(r.Name ?? r.input?.Name);
-          if (nm) setAliases(a => ({ ...a, [nm]: top.symbol })); // learn while bulk applying
+          if (nm) setAliases(a => ({ ...a, [nm]: top.symbol }));
         }
       }
       return next;
@@ -543,7 +540,7 @@ export default function App() {
     toast({ title: `Bulk applied ${changed}`, status: "success" });
   }
 
-  // risk scoring for commit preview — now actually using `source`
+  // risk scoring
   function riskOf(score?: number, source?: string): RiskLevel {
     if (typeof score !== "number") return "HIGH";
     const trusted = source ? ["FINNHUB", "POLYGON", "YFINANCE", "LOCAL"].includes(source.toUpperCase()) : false;
@@ -562,6 +559,10 @@ export default function App() {
       </HStack>
     );
 
+    const Combo = ({ k }: { k: string }) => (
+      <HStack spacing={1}><Kbd>⌘/Ctrl</Kbd><Text>+</Text><Kbd>{k}</Kbd></HStack>
+    );
+
     return (
       <Modal isOpen={isOpen} onClose={onClose} size="sm" isCentered>
         <ModalOverlay />
@@ -575,12 +576,12 @@ export default function App() {
           <ModalCloseButton />
           <ModalBody>
             <VStack align="stretch" spacing={2}>
-              <Row keys={<><Kbd>⌘/Ctrl</Kbd><Text> + </Text><Kbd>K</Kbd></>} label="Focus search" />
-              <Row keys={<><Kbd>⌘/Ctrl</Kbd><Text> + </Text><Kbd>Enter</Kbd></>} label="Open commit preview" />
-              <Row keys={<><Kbd>⌘/Ctrl</Kbd><Text> + </Text><Kbd>L</Kbd></>} label="Toggle Local Maps" />
-              <Row keys={<Kbd>A</Kbd>} label="Bulk-apply top candidates" />
-              <Row keys={<Kbd>R</Kbd>} label="Reset session" />
-              <Row keys={<Kbd>?</Kbd>} label="Open this help" />
+              <Row keys={<Combo k="K" />} label="Focus search" />
+              <Row keys={<Combo k="Enter" />} label="Open commit preview" />
+              <Row keys={<Combo k="L" />} label="Toggle Local Maps" />
+              <Row keys={<HStack spacing={1}><Kbd>⌘/Ctrl</Kbd><Text>+</Text><Kbd>Shift</Kbd><Text>+</Text><Kbd>B</Kbd></HStack>} label="Bulk-apply candidates" />
+              <Row keys={<HStack spacing={1}><Kbd>⌘/Ctrl</Kbd><Text>+</Text><Kbd>Shift</Kbd><Text>+</Text><Kbd>X</Kbd></HStack>} label="Reset session" />
+              <Row keys={<Combo k="/" />} label="Open this help" />
             </VStack>
           </ModalBody>
         </ModalContent>
@@ -594,7 +595,7 @@ export default function App() {
     const changes: PendingChange[] = [];
     for (const r of rows) {
       const to = overrides[r.index];
-      if (!to && r.status !== "FILLED") continue; // only FILLED rows or ones with overrides result in a symbol write
+      if (!to && r.status !== "FILLED") continue;
       const top = r.candidates?.[0];
       const chosen = to || (r.status === "FILLED" ? top?.symbol : "");
       if (!chosen) continue;
@@ -656,20 +657,40 @@ export default function App() {
     toast({ title: "Reset", status: "info" });
   }, [toast]);
 
-  // shortcuts
+  // helper: is event in an editable element?
+  const isEditableTarget = (t: EventTarget | null) => {
+    const el = t as HTMLElement | null;
+    if (!el) return false;
+    const tag = el.tagName?.toLowerCase();
+    const editable = (el as any).isContentEditable;
+    return editable || tag === "input" || tag === "textarea" || tag === "select";
+  };
+
+  // shortcuts (cmd/ctrl combos only; ignore plain letters inside inputs)
   const shortcuts = useDisclosure();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const cmd = e.metaKey || e.ctrlKey;
-      if (cmd && e.key.toLowerCase() === "k") { e.preventDefault(); const el = document.getElementById("search-box"); (el as HTMLInputElement)?.focus(); }
-      if (cmd && e.key === "Enter") { e.preventDefault(); openCommitPreview(); }
-      if (cmd && e.key.toLowerCase() === "l") { e.preventDefault(); setUseLocalMaps(v => !v); }
-      if (!cmd && e.key === "?") { e.preventDefault(); shortcuts.onOpen(); }
-      if (!cmd && e.key.toLowerCase() === "r") { e.preventDefault(); resetAll(); }
-      if (!cmd && e.key.toLowerCase() === "a") { e.preventDefault(); bulkApplyTopCandidates(); }
+      const shift = e.shiftKey;
+      const key = e.key;
+
+      // If typing in an editable element and NOT pressing Cmd/Ctrl, ignore.
+      if (isEditableTarget(e.target) && !cmd) return;
+
+      // Global combos
+      if (cmd && key.toLowerCase() === "k") { e.preventDefault(); (document.getElementById("search-box") as HTMLInputElement | null)?.focus(); return; }
+      if (cmd && key === "Enter") { e.preventDefault(); openCommitPreview(); return; }
+      if (cmd && key.toLowerCase() === "l") { e.preventDefault(); setUseLocalMaps(v => !v); return; }
+      if (cmd && (key === "/" || key === "?")) { e.preventDefault(); shortcuts.onOpen(); return; }
+
+      // High-impact actions (require Cmd/Ctrl + Shift)
+      if (cmd && shift && key.toLowerCase() === "b") { e.preventDefault(); bulkApplyTopCandidates(); return; }
+      if (cmd && shift && key.toLowerCase() === "x") { e.preventDefault(); resetAll(); return; }
+
+      // We intentionally removed bare-letter bindings (A/R/?) to avoid collisions with typing.
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, { capture: true });
+    return () => window.removeEventListener("keydown", onKey, { capture: true } as any);
   }, [bulkApplyTopCandidates, resetAll, setUseLocalMaps]); // eslint-disable-line
 
   type StatCardProps = {
@@ -722,10 +743,10 @@ export default function App() {
     });
   }, [rows, qDebounced, statusFilter]);
 
-  // confidence heat map bg (very subtle)
+  // confidence bg
   const rowBgForScore = (score?: number) => {
     if (typeof score !== "number") return undefined;
-    const a = Math.min(Math.max((score - 0.5) * 0.8, 0), 0.35); // alpha 0..0.35 for 0.5..1.0
+    const a = Math.min(Math.max((score - 0.5) * 0.8, 0), 0.35);
     const bad = score < 0.6;
     const [r,g,b] = bad ? [255, 80, 80] : score >= 0.85 ? [80, 200, 120] : [220, 180, 60];
     return `rgba(${r},${g},${b},${a.toFixed(2)})`;
@@ -742,8 +763,8 @@ export default function App() {
               <Text opacity={0.85} fontSize="sm">Upload, enrich, review, override, export — with full auditability.</Text>
             </VStack>
             <HStack spacing={2} wrap="wrap">
-              <Tooltip label="Shortcuts (?)"><Button size="sm" variant="ghost" onClick={shortcuts.onOpen}>?</Button></Tooltip>
-              <Tooltip label="Reset (R)"><IconButton aria-label="Reset" icon={<RepeatIcon />} onClick={resetAll} size="sm" variant="ghost" /></Tooltip>
+              <Tooltip label="Shortcuts (⌘/Ctrl+/)"><Button size="sm" variant="ghost" onClick={shortcuts.onOpen}>?</Button></Tooltip>
+              <Tooltip label="Reset (⌘/Ctrl+Shift+X)"><IconButton aria-label="Reset" icon={<RepeatIcon />} onClick={resetAll} size="sm" variant="ghost" /></Tooltip>
               <Tooltip label="Preview commit (⌘/Ctrl+Enter)">
                 <Button leftIcon={<DownloadIcon />} colorScheme="blue" onClick={openCommitPreview} isDisabled={!rows.length} size="sm">Commit & Download</Button>
               </Tooltip>
@@ -831,7 +852,9 @@ export default function App() {
               {!!filtered.length && (
                 <HStack mt={4} spacing={4} align="center">
                   <Text fontSize="sm" color="gray.400">Bulk apply top candidate to filtered rows (FILLED/AMBIGUOUS)</Text>
-                  <Button size="sm" onClick={bulkApplyTopCandidates} variant="outline">Apply</Button>
+                  <Tooltip label="Bulk-apply (⌘/Ctrl+Shift+B)">
+                    <Button size="sm" onClick={bulkApplyTopCandidates} variant="outline">Apply</Button>
+                  </Tooltip>
                   <HStack>
                     <Text fontSize="xs" color="gray.400">Min score</Text>
                     <Slider aria-label="score" min={0} max={1} step={0.05} value={bulkMinScore} onChange={setBulkMinScore} w="160px">
@@ -916,7 +939,7 @@ export default function App() {
                 <Box mt={4} borderWidth="1px" borderColor="whiteAlpha.200" rounded="2xl" p={10} textAlign="center" color="gray.300" bg="blackAlpha.300" backdropFilter="blur(6px)">
                   <Text fontSize="lg" mb={2}>Start by choosing a CSV/XLSX file.</Text>
                   <Text fontSize="sm" opacity={0.8}>
-                    Tip: Use <Kbd>⌘/Ctrl</Kbd> + <Kbd>K</Kbd> to focus search. Press <Kbd>A</Kbd> to bulk-apply top candidates.
+                    Tips: <Kbd>⌘/Ctrl</Kbd>+<Kbd>K</Kbd> to focus search • <Kbd>⌘/Ctrl</Kbd>+<Kbd>Shift</Kbd>+<Kbd>B</Kbd> to bulk-apply • <Kbd>⌘/Ctrl</Kbd>+<Kbd>/</Kbd> for help
                   </Text>
                 </Box>
               )}
