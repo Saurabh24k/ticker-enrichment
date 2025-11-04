@@ -22,12 +22,12 @@ services:
       - key: HTTP_QPS
         value: "0.8"
 
-  - type: static_site
+  - type: web
     name: ticker-ui
+    env: static
     rootDir: frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
     envVars:
-      # point the built UI at your API; update after the API deploys
       - key: VITE_API_BASE
         value: https://ticker-api.onrender.com
