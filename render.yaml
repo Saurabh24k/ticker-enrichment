@@ -9,6 +9,8 @@ services:
     autoDeploy: true
     healthCheckPath: /healthz
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
       - key: FINNHUB_API_KEY
         sync: false
       - key: POLYGON_API_KEY
@@ -30,4 +32,4 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_BASE
-        value: https://ticker-api.onrender.com
+        value: https://ticker-api-ex8c.onrender.com
