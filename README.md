@@ -223,47 +223,6 @@ This keeps me honest when bulk-applying.
 
 ---
 
-## Troubleshooting (actual fixes, not vibes)
-
-* **Static build failed on Render (npm + Node 22)**
-  Use **Node 20** and **pnpm**. It’s already pinned. Build uses:
-
-  ```bash
-  corepack enable && pnpm install --frozen-lockfile && pnpm run build
-  ```
-* **TS6133 “declared but never read”**
-  TypeScript is strict. Remove unused vars/params or turn off `noUnusedLocals/noUnusedParameters` if you like footguns (I don’t).
-* **CORS**
-  `ALLOW_ALL_CORS=1` is set for demo. Lock it down for prod.
-* **405 on HEAD /**
-  Ignore. Render health checks do this. The app serves `GET /` fine.
-
----
-
-## Demo checklist (what I’ll show)
-
-* **Input**: small CSV with 10–20 rows (mix of clear wins, ambiguous names, and missing symbols)
-* **Flow**:
-
-  1. Upload → show **status breakdown** + **coverage**
-  2. Open a few rows → **drawer** → override one to show **alias learning**
-  3. **Bulk apply** with min score 0.85 → show counts
-  4. **Commit preview** → scan **HIGH** risk changes
-  5. **Confirm** → download `enriched_holdings.csv`
-  6. Re-upload **same file** to show determinism + learned alias effect
-* **Metrics** to call out:
-
-  * Coverage %
-  * Avg candidates/row
-  * Time to preview / commit
-  * # of overrides (manual) vs auto
-* **Artifacts**:
-
-  * Activity log (download)
-  * Final CSV (upload to Sheets quickly to visualize diffs)
-
----
-
 ## Roadmap (near-term)
 
 * Add **source-level policy** (e.g., prefer US common stock, exclude REITs/ETFs unless requested)
@@ -275,16 +234,7 @@ This keeps me honest when bulk-applying.
 
 ---
 
-## Notes
-
-This is a focused coding exercise turned into a usable tool. It’s intentionally opinionated: speed, clarity, auditability > bells and whistles.
-
----
-
 ## License
 
 MIT (for now). If I upstream API keys or private maps later, I’ll scope them out or move to env-only.
 
----
-
-If you want me to wire a slick public demo (gif/video + sample dataset + talk track), I’ve already laid the checklist.
