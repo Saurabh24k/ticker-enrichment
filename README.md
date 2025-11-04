@@ -197,8 +197,6 @@ services:
 * **MEDIUM**: ≥ 0.60 and < 0.85
 * **HIGH**: < 0.60 or missing score
 
-This keeps me honest when bulk-applying.
-
 ---
 
 ## Learned aliases (self-tuning)
