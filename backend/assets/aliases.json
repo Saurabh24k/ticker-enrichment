@@ -1,0 +1,20 @@
+{
+    "google": { "symbols": ["GOOGL", "GOOG"], "expand": ["alphabet"] },
+    "alphabet": { "symbols": ["GOOGL", "GOOG"] },
+    "square": { "symbols": ["SQ"], "expand": ["block"] },
+    "block": { "symbols": ["SQ"] },
+    "royal dutch shell": { "symbols": ["SHEL"] },
+    "shell": { "symbols": ["SHEL"] },
+    "coca-cola": { "symbols": ["KO"] },
+    "coca cola": { "symbols": ["KO"] },
+    "royal bank": { "symbols": ["RY"], "expand": ["royal bank of canada"] },
+    "asml": { "symbols": ["ASML"] },
+    "novo nordisk": { "symbols": ["NVO"] },
+    "palantir": { "symbols": ["PLTR"] },
+    "microsoft": { "symbols": ["MSFT"] },
+    "apple": { "symbols": ["AAPL"] },
+    "meta": { "symbols": ["META"], "expand": ["facebook"] },
+    "facebook": { "symbols": ["META"] },
+    "tesla": { "symbols": ["TSLA"] }
+  }
+  

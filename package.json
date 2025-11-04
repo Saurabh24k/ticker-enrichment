@@ -1,0 +1,9 @@
+{
+    "name": "powder-ticker-enrichment",
+    "private": true,
+    "scripts": {
+      "dev:backend": "bash -lc 'cd backend && source .venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload'",
+      "dev:frontend": "bash -lc 'cd frontend && pnpm dev'",
+      "dev": "bash -lc 'tmux new-session -d -s pte \"pnpm run dev:backend\" \\; split-window -h \"pnpm run dev:frontend\" \\; attach'"
+    }
+  }

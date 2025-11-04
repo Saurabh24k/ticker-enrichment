@@ -1,0 +1,28 @@
+{
+    "SPDR S&P 500 ETF Trust": "SPY",
+    "Vanguard S&P 500 ETF": "VOO",
+    "Vanguard SP 500 ETF": "VOO",
+    "iShares Core S&P 500 ETF": "IVV",
+    "Invesco QQQ Trust": "QQQ",
+    "Vanguard Total Stock Market ETF": "VTI",
+    "Schwab U.S. Broad Market ETF": "SCHB",
+    "iShares Russell 2000 ETF": "IWM",
+    "iShares MSCI EAFE ETF": "EFA",
+    "iShares MSCI Emerging Markets ETF": "EEM",
+    "SPDR Gold Trust": "GLD",
+    "VanEck Gold Miners ETF": "GDX",
+    "iShares 20+ Year Treasury Bond ETF": "TLT",
+    "iShares iBoxx $ Investment Grade Corporate Bond ETF": "LQD",
+    "iShares iBoxx $ High Yield Corporate Bond ETF": "HYG",
+    "Technology Select Sector SPDR Fund": "XLK",
+    "Financial Select Sector SPDR Fund": "XLF",
+    "Utilities Select Sector SPDR Fund": "XLU",
+    "Health Care Select Sector SPDR Fund": "XLV",
+    "Energy Select Sector SPDR Fund": "XLE",
+    "Consumer Discretionary Select Sector SPDR Fund": "XLY",
+    "Consumer Staples Select Sector SPDR Fund": "XLP",
+    "Materials Select Sector SPDR Fund": "XLB",
+    "Industrial Select Sector SPDR Fund": "XLI",
+    "Communication Services Select Sector SPDR Fund": "XLC"
+  }
+  
