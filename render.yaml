@@ -13,20 +13,21 @@ services:
         sync: false
       - key: POLYGON_API_KEY
         sync: false
-      - key: FRONTEND_ORIGIN
-        value: ""
       - key: ALLOW_ALL_CORS
         value: "1"
       - key: RESOLVER_VERSION
         value: "2025.11.03"
-      # Optional tuning:
       - key: HTTP_TIMEOUT
         value: "4.0"
       - key: HTTP_QPS
         value: "0.8"
 
-  - type: static
+  - type: static_site
     name: ticker-ui
     rootDir: frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
+    envVars:
+      # point the built UI at your API; update after the API deploys
+      - key: VITE_API_BASE
+        value: https://ticker-api.onrender.com
