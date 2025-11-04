@@ -147,16 +147,6 @@ services:
 * **Commit Preview** (sorted by risk) before writing CSV
 * **Activity Log** with copy/download
 * **Insights**: coverage, avg candidates/row, top sources, status counts
-* **Shortcuts**:
-
-  * `⌘/Ctrl + K` focus search
-  * `⌘/Ctrl + Enter` commit preview
-  * `⌘/Ctrl + L` toggle Local Maps
-  * `A` bulk-apply top candidates
-  * `R` reset session
-  * `?` shortcuts modal
-
----
 
 ## API (minimal)
 
