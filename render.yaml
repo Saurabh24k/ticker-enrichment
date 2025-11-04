@@ -25,14 +25,14 @@ services:
         value: "0.8"
 
   - type: web
-      name: ticker-ui
-      env: static
-      rootDir: frontend
-      buildCommand: |
-        rm -rf node_modules package-lock.json
-        npm install --legacy-peer-deps
-        npm run build
-      staticPublishPath: dist
-      envVars:
-        - key: VITE_API_BASE
-          value: https://ticker-api-ex8c.onrender.com
+    name: ticker-ui
+    env: static
+    rootDir: frontend
+    buildCommand: |
+      corepack enable
+      pnpm install --frozen-lockfile
+      pnpm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE
+        value: https://ticker-api-ex8c.onrender.com
