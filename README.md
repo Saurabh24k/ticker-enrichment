@@ -216,9 +216,3 @@ services:
 * Optional **confidence column** write-back
 * Quick **/healthz** + request id for API logs
 
----
-
-## License
-
-MIT (for now). If I upstream API keys or private maps later, I’ll scope them out or move to env-only.
-
